@@ -8,6 +8,7 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.How;
 
 import static com.codeborne.selenide.Condition.exist;
+import static io.restassured.RestAssured.given;
 
 public class AccountPage {
     // Локатор для кнопки "Выход"
@@ -25,32 +26,35 @@ public class AccountPage {
     // Метод для клика по элементу "Конструктор" и возврата текущего URL
     @Step("Click constructor")
     public String clickConstructor() {
-        constructor.click(); // Кликаем по элементу "Конструктор"
-        return Selenide.switchTo().window(0).getCurrentUrl(); // Возвращаем текущий URL
+        constructor.click();
+        return Selenide.switchTo().window(0).getCurrentUrl();
     }
 
     // Метод для клика по логотипу бургеров и возврата текущего URL
     @Step("Click logo burger")
     public String clickLogoBurger() {
-        logoBurger.click(); // Кликаем по логотипу бургеров
-        return Selenide.switchTo().window(0).getCurrentUrl(); // Возвращаем текущий URL
+        logoBurger.click();
+        return Selenide.switchTo().window(0).getCurrentUrl();
     }
 
     // Метод для клика по кнопке "Выход"
     @Step("Click logout button")
     public void clickLogout() {
-        logoutButton.click(); // Кликаем по кнопке "Выход"
+        logoutButton.click();
     }
 
     // Метод для проверки отображения кнопки "Выход"
+    @Step("Check if logout button is displayed")
     public boolean isLogoutDisplayed() {
-        logoutButton.shouldBe(exist); // Ожидаем, что кнопка "Выход" существует
-        return logoutButton.isDisplayed(); // Возвращаем результат проверки отображения кнопки
+        logoutButton.shouldBe(exist);
+        return logoutButton.isDisplayed();
     }
 
     // Метод для клика по кнопке "Выход" с проверкой состояния
+    @Step("Click logout button with condition")
     public boolean clickLogoutButton(Condition condition) {
-        logoutButton.click(); // Кликаем по кнопке "Выход"
-        return logoutButton.shouldBe(condition).isDisplayed(); // Проверяем, что кнопка отображается в соответствии с условием
+        logoutButton.click();
+        return logoutButton.shouldBe(condition).isDisplayed();
     }
+
 }

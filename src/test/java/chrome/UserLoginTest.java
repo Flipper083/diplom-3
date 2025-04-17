@@ -5,8 +5,10 @@ import com.codeborne.selenide.Configuration;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import com.codeborne.selenide.Selenide;
 import io.qameta.allure.junit4.DisplayName;
+import io.qameta.allure.Description; // Импорт аннотации Description
 import org.example.api.GenerateUser;
 import org.example.api.User;
+import org.example.api.UserClient;
 import org.example.page.*;
 import org.junit.Test;
 import org.junit.After;
@@ -23,34 +25,46 @@ public class UserLoginTest {
     private LoginPage loginPage; // Переменная для страницы логина
     private ForgotPasswordPage forgotPassword; // Переменная для страницы восстановления пароля
     private RegisterPage registrationPage; // Переменная для страницы регистрации
+    private UserClient userClient;
+    private String accessToken;
 
     @Before
     public void setUp() {
-        // Устанавливаем конфигурацию браузера: открытие в максимальном разрешении
-        Configuration.startMaximized = true;
-        WebDriverManager.chromedriver().setup();
+        // Получаем имя браузера из системной переменной или используем Chrome по умолчанию
+        String browser = System.getProperty("browser", "chrome");
 
-        // Генерация случайного пользователя
-        user = GenerateUser.getRandomUser();
+        if (browser.equalsIgnoreCase("yandex")) {
+            // Настройки для Яндекс.Браузера
+            System.setProperty("webdriver.yandex.driver", "src/main/resources/yandexdriver"); // Укажите путь к драйверу Яндекс.Браузера
+            Configuration.browser = "chrome"; // Selenide будет использовать ChromeDriver
+            Configuration.startMaximized = true; // Открытие в максимальном размере
+        } else {
+            // Устанавливаем конфигурацию для Chrome
+            Configuration.browser = browser;
+            Configuration.startMaximized = true; // Открытие в максимальном размере
+            WebDriverManager.chromedriver().setup(); // Установка драйвера для Chrome
+        }
 
-        // Открываем главную страницу и выполняем регистрацию нового пользователя
+        userClient = new UserClient();
+        user = GenerateUser.getRandomUser(); // Генерация случайного пользователя
+
+        // Создаем пользователя через API и получаем токен
+        accessToken = userClient.createClient(user).extract().path("accessToken");
+
+        // Открываем главную страницу
         homePage = open(HomePage.URL, HomePage.class);
-        homePage.clickLoginButton() // Кликаем кнопку "Войти"
-                .clickRegisterLink() // Переходим на страницу регистрации
-                .fillRegisterForm(user.getName(), user.getEmail(), user.getPassword()) // Заполняем форму регистрации
-                .clickRegisterButton(Condition.hidden); // Кликаем кнопку "Зарегистрироваться" и ждем, когда она скроется
-        homePage = null; // Обнуляем переменную homePage после регистрации
     }
 
     @After
     public void clearState() {
-        // Обнуляем пользователя после тестов и очищаем локальное хранилище браузера
-        user = null;
-        Selenide.clearBrowserLocalStorage();
+        // Удаляем пользователя после тестов через API
+        userClient.deleteClient(accessToken);
+        Selenide.clearBrowserLocalStorage(); // Очищаем локальное хранилище браузера
     }
 
     @Test
     @DisplayName("Login user by login button")
+    @Description("Test to login user using the login button")
     public void loginUserByLoginButtonTest() {
         // Открываем главную страницу
         homePage = open(HomePage.URL, HomePage.class);
@@ -66,6 +80,7 @@ public class UserLoginTest {
 
     @Test
     @DisplayName("Login user by account button")
+    @Description("Test to login user using the account button")
     public void loginUserByAccountButtonTest() {
         // Открываем главную страницу
         homePage = open(HomePage.URL, HomePage.class);
@@ -81,6 +96,7 @@ public class UserLoginTest {
 
     @Test
     @DisplayName("Login user by register page")
+    @Description("Test to login user using the register page")
     public void loginUserByRegisterPageTest() {
         // Открываем главную страницу
         homePage = open(HomePage.URL, HomePage.class);
@@ -98,6 +114,7 @@ public class UserLoginTest {
 
     @Test
     @DisplayName("Login user by forgot password page")
+    @Description("Test to login user using the forgot password page")
     public void loginUserByForgotPasswordPageTest() {
         // Открываем главную страницу
         homePage = open(HomePage.URL, HomePage.class);
